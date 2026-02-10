@@ -1,0 +1,5 @@
+{
+  "account": "",
+  "region": "us-east-1",
+  "_comment": "Copia este archivo a environment.json y configura tus valores. Deja 'account' vacío para que CDK lo detecte automáticamente."
+}

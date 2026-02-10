@@ -1,14 +1,30 @@
-# Welcome to your CDK TypeScript project
+# Turnos MVP - Backend
 
-This is a blank project for CDK development with TypeScript.
+Backend serverless (Lambda + API Gateway + DynamoDB + Google Calendar) para gestión de turnos.
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## Comandos útiles
 
-## Useful commands
+* `npm run build`   compilar TypeScript
+* `npm run test`    tests con Jest
+* `npx cdk deploy`  desplegar el stack
+* `npx cdk diff`    ver diferencias con lo desplegado
+* `npx cdk synth`   generar CloudFormation
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+## Limpiar DynamoDB
+
+**Opción 1 – Vaciar la tabla (solo datos, la tabla sigue existiendo)**
+
+```bash
+chmod +x scripts/empty-appointments-table.sh
+./scripts/empty-appointments-table.sh
+# con otra región: ./scripts/empty-appointments-table.sh us-east-2
+```
+
+O desde consola AWS: DynamoDB → Tablas → Appointments → Explorar elementos → borrar ítems.
+
+**Opción 2 – Borrar todo y que el deploy recree**
+
+No borres solo la tabla a mano: CloudFormation puede fallar en el próximo deploy. Para empezar de cero:
+
+1. `npx cdk destroy` (borra stack completo: tabla, Lambdas, API)
+2. `npx cdk deploy` (crea todo de nuevo, tabla vacía)
