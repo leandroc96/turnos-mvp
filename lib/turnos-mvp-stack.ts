@@ -3,6 +3,8 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -22,6 +24,14 @@ export class TurnosMvpStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       timeToLiveAttribute: "expiresAt",
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    // GSI para buscar turnos por status + startTime (usado por el reminder de WhatsApp)
+    appointmentsTable.addGlobalSecondaryIndex({
+      indexName: 'status-startTime-index',
+      partitionKey: { name: 'status', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'startTime', type: dynamodb.AttributeType.STRING },
+      projectionType: dynamodb.ProjectionType.ALL,
     });
 
     // ─── Tabla: Doctors ───
@@ -277,6 +287,58 @@ export class TurnosMvpStack extends cdk.Stack {
     studiesTable.grantReadData(tarifasFn);
 
     // ═══════════════════════════════════════════════════════
+    //  LAMBDA FUNCTIONS – WhatsApp Reminders
+    // ═══════════════════════════════════════════════════════
+
+    // Variables de configuración de WhatsApp (Meta Cloud API)
+    const whatsappAccessToken = process.env.WHATSAPP_ACCESS_TOKEN || "PLACEHOLDER_SET_IN_SECRETS";
+    const whatsappPhoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID || "PLACEHOLDER_SET_IN_SECRETS";
+    const whatsappVerifyToken = process.env.WHATSAPP_VERIFY_TOKEN || "turnos-mvp-verify";
+    const whatsappTemplateName = process.env.WHATSAPP_TEMPLATE_NAME || "appointment_reminder";
+
+    // Lambda: Reminder Checker (ejecutada por EventBridge cada 30 min)
+    const reminderCheckerFn = new NodejsFunction(this, "ReminderCheckerFn", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: "src/lambdas/appointments/reminder/handler.ts",
+      handler: "handler",
+      timeout: cdk.Duration.seconds(60),
+      memorySize: 256,
+      bundling: { forceDockerBundling: false },
+      environment: {
+        APPOINTMENTS_TABLE_NAME: appointmentsTable.tableName,
+        WHATSAPP_ACCESS_TOKEN: whatsappAccessToken,
+        WHATSAPP_PHONE_NUMBER_ID: whatsappPhoneNumberId,
+        WHATSAPP_TEMPLATE_NAME: whatsappTemplateName,
+        WHATSAPP_TEMPLATE_LANG: "es_AR",
+      },
+    });
+    appointmentsTable.grantReadWriteData(reminderCheckerFn);
+
+    // EventBridge Rule: ejecutar ReminderChecker cada 30 minutos
+    new events.Rule(this, "ReminderScheduleRule", {
+      ruleName: "TurnosMvp-ReminderEvery30Min",
+      schedule: events.Schedule.rate(cdk.Duration.minutes(30)),
+      targets: [new targets.LambdaFunction(reminderCheckerFn)],
+    });
+
+    // Lambda: WhatsApp Webhook (recibe respuestas de pacientes)
+    const whatsappWebhookFn = new NodejsFunction(this, "WhatsAppWebhookFn", {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      entry: "src/lambdas/appointments/whatsapp-webhook/handler.ts",
+      handler: "handler",
+      timeout: cdk.Duration.seconds(15),
+      memorySize: 128,
+      bundling: { forceDockerBundling: false },
+      environment: {
+        APPOINTMENTS_TABLE_NAME: appointmentsTable.tableName,
+        WHATSAPP_ACCESS_TOKEN: whatsappAccessToken,
+        WHATSAPP_PHONE_NUMBER_ID: whatsappPhoneNumberId,
+        WHATSAPP_VERIFY_TOKEN: whatsappVerifyToken,
+      },
+    });
+    appointmentsTable.grantReadWriteData(whatsappWebhookFn);
+
+    // ═══════════════════════════════════════════════════════
     //  REST API GATEWAY (v1) – Todas las rutas
     // ═══════════════════════════════════════════════════════
 
@@ -332,6 +394,13 @@ export class TurnosMvpStack extends cdk.Stack {
     tarifasIdResource.addMethod('PUT', tarifasIntegration);
     tarifasIdResource.addMethod('DELETE', tarifasIntegration);
 
+    // /webhook/whatsapp – Endpoint para Meta WhatsApp Cloud API
+    const webhookResource = restApi.root.addResource('webhook');
+    const whatsappWebhookResource = webhookResource.addResource('whatsapp');
+    const whatsappIntegration = new apigateway.LambdaIntegration(whatsappWebhookFn);
+    whatsappWebhookResource.addMethod('GET', whatsappIntegration);   // Verificación
+    whatsappWebhookResource.addMethod('POST', whatsappIntegration);  // Mensajes entrantes
+
     // ═══════════════════════════════════════════════════════
     //  OUTPUTS
     // ═══════════════════════════════════════════════════════
@@ -345,5 +414,9 @@ export class TurnosMvpStack extends cdk.Stack {
     new cdk.CfnOutput(this, "StudiesTableName", { value: studiesTable.tableName });
     new cdk.CfnOutput(this, 'ObrasSocialesTableName', { value: obrasSocialesTable.tableName });
     new cdk.CfnOutput(this, 'TarifasTableName', { value: tarifasTable.tableName });
+    new cdk.CfnOutput(this, 'WhatsAppWebhookUrl', {
+      value: `${restApi.url}webhook/whatsapp`,
+      description: 'URL del webhook de WhatsApp (configurar en Meta Developer Console)',
+    });
   }
 }

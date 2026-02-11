@@ -27,4 +27,9 @@ export interface Appointment {
   status: AppointmentStatus;
   createdAt: string;
   expiresAt?: number;
+  // Campos para recordatorio WhatsApp
+  reminderSent?: boolean;
+  reminderSentAt?: string;
+  confirmedAt?: string;
+  cancelledAt?: string;
 }
