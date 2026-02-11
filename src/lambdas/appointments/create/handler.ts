@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
@@ -41,8 +41,8 @@ function isValidEmail(email: string): boolean {
 }
 
 export const handler = async (
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> => {
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
   console.log("=== CREATE APPOINTMENT HANDLER START ===");
   console.log("Event:", JSON.stringify(event, null, 2));
   console.log("Environment variables:", {

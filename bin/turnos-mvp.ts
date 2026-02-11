@@ -1,22 +1,15 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { TurnosMvpStack, AppointmentsStack } from "../lib/turnos-mvp-stack";
+import { TurnosMvpStack } from "../lib/turnos-mvp-stack";
 import { getEnvironmentConfig } from "../config/environment";
 
 const app = new cdk.App();
 
-// Lee la configuración del ambiente desde config/environment.ts
 const envConfig = getEnvironmentConfig();
 
-const envProps = {
+new TurnosMvpStack(app, "TurnosMvpStack", {
   env: {
-    account: envConfig.account || undefined, // undefined permite que CDK lo detecte automáticamente
+    account: envConfig.account || undefined,
     region: envConfig.region,
   },
-};
-
-// Stack de obras sociales y tarifas
-new TurnosMvpStack(app, "TurnosMvpStack", envProps);
-
-// Stack de turnos, doctores y estudios
-new AppointmentsStack(app, "AppointmentsStack", envProps);
+});

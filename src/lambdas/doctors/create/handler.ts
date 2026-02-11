@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { nanoid } from "nanoid";
@@ -12,8 +12,8 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 const TABLE_NAME = process.env.DOCTORS_TABLE_NAME || "Doctors";
 
 export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
   console.log("Create doctor request received");
 
   try {

@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { nanoid } from "nanoid";
@@ -13,8 +13,8 @@ const TABLE_NAME = process.env.STUDIES_TABLE_NAME || "Studies";
 const DEFAULT_DURATION_MINUTES = 30;
 
 export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
   console.log("Create study request received");
 
   try {

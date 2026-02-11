@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { successResponse, errorResponse, parseRequestBody } from "../../../utils/http";
@@ -10,8 +10,8 @@ const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 const TABLE_NAME = process.env.STUDIES_TABLE_NAME || "Studies";
 
 export async function handler(
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> {
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> {
   console.log("Update study request received");
 
   try {

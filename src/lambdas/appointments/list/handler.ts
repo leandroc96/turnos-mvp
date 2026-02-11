@@ -1,4 +1,4 @@
-import { APIGatewayProxyEventV2, APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { successResponse, errorResponse } from "../../../utils/http";
@@ -11,8 +11,8 @@ const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const TIMEZONE_SUFFIX = "-03:00";
 
 export const handler = async (
-  event: APIGatewayProxyEventV2
-): Promise<APIGatewayProxyResultV2> => {
+  event: APIGatewayProxyEvent
+): Promise<APIGatewayProxyResult> => {
   try {
     const from = event.queryStringParameters?.from;
     const to = event.queryStringParameters?.to;

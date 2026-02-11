@@ -2,7 +2,7 @@
  * Utilidades para respuestas HTTP en Lambda (API Gateway v2)
  */
 
-import { APIGatewayProxyResultV2 } from "aws-lambda";
+import { APIGatewayProxyResult } from "aws-lambda";
 
 const CORS_HEADERS = {
   "Content-Type": "application/json",
@@ -11,7 +11,7 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
 };
 
-export function successResponse(data: any, statusCode: number = 200): APIGatewayProxyResultV2 {
+export function successResponse(data: any, statusCode: number = 200): APIGatewayProxyResult {
   return {
     statusCode,
     headers: CORS_HEADERS,
@@ -23,7 +23,7 @@ export function errorResponse(
   message: string,
   statusCode: number = 500,
   error?: any
-): APIGatewayProxyResultV2 {
+): APIGatewayProxyResult {
   return {
     statusCode,
     headers: CORS_HEADERS,
