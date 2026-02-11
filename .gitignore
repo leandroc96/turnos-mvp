@@ -6,3 +6,6 @@ node_modules
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Environment config con credenciales (usar environment.json.example como plantilla)
+config/environment.json

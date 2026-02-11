@@ -9,7 +9,7 @@ import { Study } from "../../../domain/study.model";
 const dynamoClient = new DynamoDBClient({});
 const dynamoDb = DynamoDBDocumentClient.from(dynamoClient);
 
-const TABLE_NAME = process.env.STUDIES_TABLE_NAME || "Studies";
+const TABLE_NAME = process.env.STUDIES_TABLE_NAME || "TurnosMvp-Studies";
 const DEFAULT_DURATION_MINUTES = 30;
 
 export async function handler(
