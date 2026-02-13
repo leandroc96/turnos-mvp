@@ -29,6 +29,7 @@ export async function handler(
       name: dto.name.trim(),
       description: dto.description?.trim(),
       durationMinutes: dto.durationMinutes || DEFAULT_DURATION_MINUTES,
+      honorario: dto.honorario ?? 0,
       active: true,
       createdAt: new Date().toISOString(),
     };
@@ -50,6 +51,7 @@ export async function handler(
           name: study.name,
           description: study.description,
           durationMinutes: study.durationMinutes,
+          honorario: study.honorario,
           active: study.active,
         },
       },

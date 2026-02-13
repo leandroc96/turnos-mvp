@@ -62,6 +62,12 @@ export async function handler(
       expressionAttributeValues[":durationMinutes"] = dto.durationMinutes;
     }
 
+    if (dto.honorario !== undefined) {
+      updateExpressions.push("#honorario = :honorario");
+      expressionAttributeNames["#honorario"] = "honorario";
+      expressionAttributeValues[":honorario"] = dto.honorario;
+    }
+
     if (dto.active !== undefined) {
       updateExpressions.push("#active = :active");
       expressionAttributeNames["#active"] = "active";
